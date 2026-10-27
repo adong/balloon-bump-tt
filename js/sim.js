@@ -280,7 +280,7 @@
     r.inv = 0.9;
     if (r.state === 'pump') { r.state = 'fly'; r.pumpK = 1; }
     const scorer = by && by.kind === 'player' ? by.pi : -1; // the fish and the sparks score nothing
-    if (scorer >= 0) addScore(w, scorer, PTS.pop);
+    if (scorer >= 0) { addScore(w, scorer, PTS.pop); w.pl[scorer].pops++; }
     ev(w, 'pop', { r: r.id, by: by ? by.id : 0, x: r.x, y: r.y + 1.5, left: r.balloons, how: how || 'bump', pts: scorer >= 0 ? PTS.pop : 0 });
     if (r.balloons === 0) {
       r.state = 'para';

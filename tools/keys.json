@@ -1,0 +1,6 @@
+[
+  { "label": "muted", "js": "localStorage.setItem('claudeGames.muted', '1'); localStorage.setItem('claudeGames.lang', 'en'); location.reload(); 'reload'", "wait": 5000 },
+  { "label": "playCheck", "js": "(() => { const t0 = performance.now(); const r = game.playCheck(); return JSON.stringify({ ok: r.ok, total: r.total, failedCount: r.failed.length, failed: r.failed.slice(0, 30), ms: Math.round(performance.now() - t0) }); })()" },
+  { "label": "playCheck.prove (mirror and stuck must both fail)", "js": "JSON.stringify(game.playCheck.prove())" },
+  { "label": "headless check in the page", "js": "(() => { const r = game.check(); return JSON.stringify({ ok: r.ok, n: r.results.length, failed: r.failed }); })()" }
+]

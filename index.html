@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#5ec2ff">
+<title>TT Balloon Bump · Teddy &amp; Tommy</title>
+<!-- The game's icon: the same emoji as its card on the dashboard, on a coloured tile. It's the browser tab's icon (the SVG, then
+     a PNG drawn below) and the iPad home screen's (apple-touch-icon). The device's own emoji font draws it: no image files. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20x='2'%20y='2'%20width='60'%20height='60'%20rx='14'%20fill='%232fb3ec'%20stroke='%2314121f'%20stroke-width='4'/%3E%3Ctext%20x='32'%20y='44'%20font-size='36'%20text-anchor='middle'%3E%F0%9F%AA%82%3C/text%3E%3C/svg%3E">
+<script>
+  (function (emoji, tile) {
+    function draw(size, framed) {
+      const c = document.createElement('canvas');
+      c.width = c.height = size;
+      const g = c.getContext('2d');
+      if (!g) return '';
+      const u = size / 64;
+      g.fillStyle = tile;
+      if (framed) { // the tab: a rounded tile with the dashboard's dark outline
+        g.beginPath();
+        if (g.roundRect) g.roundRect(2 * u, 2 * u, 60 * u, 60 * u, 14 * u); else g.rect(2 * u, 2 * u, 60 * u, 60 * u);
+        g.fill();
+        g.lineWidth = 4 * u;
+        g.strokeStyle = '#14121f';
+        g.stroke();
+      } else g.fillRect(0, 0, size, size); // the home screen: iOS rounds the corners itself
+      g.font = `${Math.round(size * (framed ? 0.56 : 0.62))}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+      g.textAlign = 'center';
+      const m = g.measureText(emoji);
+      const up = m.actualBoundingBoxAscent || size * 0.4, down = m.actualBoundingBoxDescent || 0;
+      g.fillText(emoji, size / 2, size / 2 + (up - down) / 2);
+      try { return c.toDataURL('image/png'); } catch (e) { return ''; }
+    }
+    const tab = draw(64, true), home = draw(180, false);
+    if (tab) document.querySelector('link[rel="icon"]').href = tab;
+    if (home) {
+      const l = document.createElement('link');
+      l.rel = 'apple-touch-icon';
+      l.href = home;
+      document.head.appendChild(l);
+    }
+  })('🪂', '#2fb3ec');
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --yellow: #ffd400;
+    --pink: #ff3d7f;
+    --red: #ff4d6d;
+    --cyan: #18d4ff;
+    --lake: #2fb3ec;
+    --green: #7dff5a;
+    --ink: #14121f;
+    --display: 'Bungee', 'Arial Black', Impact, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    background: #5ec2ff; color: #fff;
+    font-family: 'Rubik', system-ui, -apple-system, sans-serif;
+    touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  }
+  #game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  .hidden { opacity: 0 !important; pointer-events: none !important; visibility: hidden; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  @keyframes pulse { 50% { transform: scale(1.08); } }
+  @keyframes slam { from { transform: scale(2.4) rotate(-8deg); opacity: 0; } }
+  @keyframes bob { 50% { transform: translateY(-6px); } }
+  @keyframes rise { 0% { transform: translate(-50%, 0) scale(0.6); opacity: 0; } 12% { transform: translate(-50%, -8px) scale(1.15); opacity: 1; } 22% { transform: translate(-50%, -10px) scale(1); } 75% { opacity: 1; } 100% { transform: translate(-50%, -46px); opacity: 0; } }
+
+  /* ---------- HUD ---------- */
+  #hud { position: fixed; inset: 0; pointer-events: none; }
+  .hudbar {
+    position: absolute; left: max(58px, env(safe-area-inset-left)); right: max(10px, env(safe-area-inset-right)); top: max(8px, env(safe-area-inset-top));
+    display: flex; gap: 8px; align-items: flex-start; justify-content: space-between;
+  }
+  .box {
+    display: flex; flex-direction: column; gap: 1px; padding: 4px 11px; border-radius: 13px; min-width: 96px;
+    background: rgba(20, 18, 31, 0.66); border: 2px solid rgba(255, 255, 255, 0.8);
+  }
+  .box .lbl { font: 800 11px/1 'Rubik', sans-serif; letter-spacing: 1px; opacity: 0.85; white-space: nowrap; }
+  .box b { font-family: var(--display); font-weight: 400; font-size: 22px; line-height: 1.05; color: var(--yellow); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .box .lives { font-size: 13px; line-height: 1; letter-spacing: 1px; white-space: nowrap; }
+  .box.off { display: none; }
+  .box.mid { align-items: center; }
+  .box.mid .wave { font: 800 11px/1.1 'Rubik', sans-serif; letter-spacing: 0.5px; color: #bff3ff; white-space: nowrap; }
+  .left, .right { display: flex; gap: 8px; align-items: flex-start; }
+  .ibtns { display: flex; gap: 6px; pointer-events: auto; }
+  .ibtn { width: 42px; height: 42px; border-radius: 12px; font-size: 17px; line-height: 1; background: rgba(20, 18, 31, 0.6); border: 2px solid rgba(255, 255, 255, 0.85); display: grid; place-items: center; color: #fff; }
+  .bud {
+    position: absolute; left: max(58px, env(safe-area-inset-left)); top: calc(max(8px, env(safe-area-inset-top)) + 64px);
+    display: flex; align-items: center; gap: 6px; padding: 3px 8px 3px 3px; border-radius: 999px;
+    background: rgba(20, 18, 31, 0.62); border: 2px solid rgba(255, 255, 255, 0.8); pointer-events: auto; color: #fff;
+  }
+  .bud img { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #fff; background: radial-gradient(circle at 50% 35%, #ffe2a0, #ff9f1c); object-fit: cover; }
+  .bud .lbl2 { font: 800 11px/1.1 'Rubik', sans-serif; letter-spacing: 0.5px; white-space: nowrap; }
+  .bud .k { font: 800 11px/1 'Rubik', sans-serif; padding: 4px 6px; border-radius: 6px; background: #fff; color: var(--ink); white-space: nowrap; }
+  .bud.on { border-color: var(--yellow); box-shadow: 0 0 16px rgba(255, 212, 0, 0.8); }
+  body.touch .bud { display: none; }
+
+  #pops { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+  .pop {
+    position: absolute; transform: translate(-50%, 0); font-family: var(--display); font-size: clamp(15px, 2.2vw, 26px); line-height: 1; color: var(--yellow); white-space: nowrap;
+    -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; text-shadow: 0 3px 0 var(--ink); animation: rise 1.2s ease-out forwards;
+  }
+  .pop.big { font-size: clamp(18px, 3vw, 34px); color: #fff; text-shadow: 0 3px 0 var(--pink), 0 6px 0 var(--ink); }
+  .pop.ouch { color: #ffb0c8; }
+  .pop.cool { color: #bff0ff; }
+  .toast {
+    position: fixed; left: 50%; top: 21%; transform: translateX(-50%); padding: 8px 18px; border-radius: 16px; background: rgba(20, 18, 31, 0.78); border: 3px solid var(--yellow);
+    font-family: var(--display); font-size: clamp(15px, 3vw, 30px); color: #fff; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.25s;
+  }
+  .toast.show { opacity: 1; animation: slam 0.35s ease-out; }
+  .bigmsg {
+    position: fixed; left: 0; right: 0; top: 34%; text-align: center; font-family: var(--display); font-size: clamp(34px, 8vw, 96px); line-height: 1;
+    color: var(--yellow); -webkit-text-stroke: 5px var(--ink); paint-order: stroke fill; text-shadow: 0 7px 0 var(--pink), 0 12px 0 var(--ink); pointer-events: none; opacity: 0; padding: 0 12px;
+  }
+  .bigmsg.show { opacity: 1; animation: slam 0.45s cubic-bezier(.2, 1.6, .4, 1); }
+  .bigmsg small { display: block; font-size: 0.32em; color: #fff; margin-top: 10px; -webkit-text-stroke-width: 3px; text-shadow: 0 4px 0 var(--ink); }
+
+  /* ---------- touch: drift arrows on the left, a big FLAP on the right (2 players: one set each side) ---------- */
+  #touch { position: fixed; inset: 0; pointer-events: none; }
+  body:not(.touch) #touch { display: none; }
+  .tgrp { position: absolute; bottom: max(12px, env(safe-area-inset-bottom)); display: flex; gap: 10px; align-items: flex-end; pointer-events: none; }
+  #tL { left: calc(max(10px, env(safe-area-inset-left)) + 54px); }
+  #tR { right: max(12px, env(safe-area-inset-right)); }
+  .tk {
+    width: 70px; height: 70px; border-radius: 20px; font-size: 30px; line-height: 1; display: grid; place-items: center; color: #fff;
+    background: rgba(20, 18, 31, 0.5); border: 3px solid rgba(255, 255, 255, 0.9); box-shadow: 0 5px 0 rgba(20, 18, 31, 0.7); pointer-events: auto; touch-action: none; text-shadow: 0 2px 0 var(--ink);
+  }
+  .tk.flap {
+    width: 104px; height: 104px; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 6px 0 var(--ink); font-size: 40px;
+    background: linear-gradient(160deg, #9fe8ff, #2f8cff); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  }
+  .tk.flap.p0 { background: linear-gradient(160deg, #ffb0bc, #ff3d5a); }
+  .tk small { font: 800 10px/1 'Rubik', sans-serif; letter-spacing: 0.5px; white-space: nowrap; text-shadow: 0 1px 2px var(--ink); }
+  .tk.call { width: 76px; height: 76px; border-radius: 50%; padding: 0; overflow: hidden; position: relative; background: rgba(20, 18, 31, 0.6); align-self: flex-start; }
+  .tk.call img { width: 58px; height: 58px; border-radius: 50%; background: radial-gradient(circle at 50% 35%, #ffe2a0, #ff9f1c); object-fit: cover; }
+  .tk.call small { position: absolute; bottom: 4px; left: 0; right: 0; text-align: center; }
+  .tk.call.hi5 { font-size: 34px; }
+  .tk.down { background: rgba(255, 212, 0, 0.85); color: var(--ink); text-shadow: none; transform: translateY(3px); box-shadow: 0 2px 0 rgba(20, 18, 31, 0.7); }
+  .tk.flap.down { background: linear-gradient(160deg, #fff6a0, #ffd400); }
+  .tk.call.on { border-color: var(--yellow); box-shadow: 0 5px 0 var(--ink), 0 0 24px rgba(255, 212, 0, 0.95); }
+  body:not(.p2) .p2only, body.p2 .p1only { display: none; }
+  @media (max-height: 460px) {
+    .tgrp { transform: scale(0.8); }
+    #tL { transform-origin: left bottom; }
+    #tR { transform-origin: right bottom; }
+    .box { padding: 3px 8px; min-width: 76px; }
+    .box b { font-size: 16px; }
+    .box .lbl, .box.mid .wave { font-size: 10px; }
+    .box .lives { font-size: 11px; }
+    .ibtn { width: 34px; height: 34px; font-size: 14px; }
+    .bud { top: calc(max(6px, env(safe-area-inset-top)) + 50px); }
+  }
+  @media (max-width: 520px) {
+    .box { padding: 3px 7px; min-width: 0; }
+    .box b { font-size: 15px; }
+    .box .lbl, .box.mid .wave { font-size: 9px; }
+    .box .lives { font-size: 10px; }
+    .ibtn { width: 34px; height: 34px; font-size: 14px; }
+    .hudbar { gap: 4px; }
+    .left, .right { gap: 4px; }
+    .tk { width: 62px; height: 62px; }
+    .tk.flap { width: 92px; height: 92px; }
+    body.p2 .tk { width: 54px; height: 54px; font-size: 24px; }
+    body.p2 .tk.flap { width: 70px; height: 70px; font-size: 30px; }
+    body.p2 .tgrp { gap: 6px; }
+    body.p2 #tL { left: calc(max(10px, env(safe-area-inset-left)) + 50px); }
+  }
+
+  /* ---------- screens ---------- */
+  .screen {
+    position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center;
+    gap: clamp(7px, 1.6vh, 13px); padding: 16px 16px 16px 64px; text-align: center; transition: opacity 0.3s;
+    background: linear-gradient(180deg, rgba(20, 40, 90, 0.12), rgba(14, 26, 64, 0.72));
+    overflow-y: auto; justify-content: safe center;
+  }
+  .logo { transform: rotate(-3deg); line-height: 0.95; margin-bottom: 2px; }
+  .logo > span { display: block; font-family: var(--display); -webkit-text-stroke: 4px var(--ink); paint-order: stroke fill; }
+  .logo .l1 { font-size: clamp(30px, min(7.4vw, 12vh), 100px); white-space: nowrap; color: var(--yellow); text-shadow: 0 6px 0 var(--pink), 0 11px 0 var(--ink), 0 18px 30px rgba(0, 0, 0, 0.35); }
+  .logo .l2 { font-size: clamp(14px, 2.2vw, 24px); color: #fff; margin-top: 6px; -webkit-text-stroke-width: 3px; }
+  .logo .l2:empty { display: none; }
+  .logo .chute { display: inline-block; animation: bob 0.9s ease-in-out infinite; margin-right: 0.12em; -webkit-text-stroke: 0; }
+  .tag { font-size: clamp(15px, 2.3vw, 20px); font-weight: 700; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6); }
+  .btn {
+    font-family: var(--display); font-size: clamp(18px, 3vw, 26px); color: var(--ink);
+    background: var(--yellow); border: 4px solid var(--ink); border-radius: 20px; padding: 11px 26px;
+    box-shadow: 0 8px 0 var(--ink), 0 14px 30px rgba(0, 0, 0, 0.3); transition: transform 0.08s, box-shadow 0.08s;
+  }
+  .btn:hover { filter: brightness(1.06); }
+  .btn:active { transform: translateY(6px); box-shadow: 0 2px 0 var(--ink); }
+  .btn.alt { background: var(--cyan); }
+  .btn.ghost { background: #fff; }
+  .btn.small { font-size: clamp(15px, 2.4vw, 19px); padding: 9px 18px; border-radius: 16px; box-shadow: 0 6px 0 var(--ink); }
+  .pulse { animation: pulse 1.3s ease-in-out infinite; }
+  .opts { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+  .row { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; justify-content: center; }
+  .row > span.h { font-family: var(--display); font-size: 13px; letter-spacing: 1px; text-shadow: 0 2px 0 var(--ink); min-width: 78px; text-align: right; }
+  .row.off { display: none; }
+  .opt {
+    display: flex; align-items: center; gap: 8px; padding: 6px 13px 6px 9px; border-radius: 14px; text-align: left; min-height: 50px;
+    background: rgba(20, 18, 31, 0.55); border: 3px solid rgba(255, 255, 255, 0.7); transition: transform 0.12s;
+  }
+  .opt .e { font-size: 24px; }
+  .opt img { width: 38px; height: 38px; border-radius: 10px; background: radial-gradient(circle at 50% 35%, #ffe2a0, #ff9f1c); }
+  .opt b { display: block; font-family: var(--display); font-size: 15px; font-weight: 400; }
+  .opt small { font-size: 11px; font-weight: 700; opacity: 0.85; }
+  .opt[aria-checked="true"] { background: rgba(255, 212, 0, 0.3); border-color: var(--yellow); transform: scale(1.05); box-shadow: 0 0 0 3px var(--ink); }
+  .hiline { font-family: var(--display); font-size: 15px; color: #fff; text-shadow: 0 2px 0 var(--ink); }
+  .hiline b { color: var(--yellow); font-weight: 400; }
+  .keys {
+    display: grid; grid-template-columns: auto auto; gap: 4px 16px; align-items: center; text-align: left;
+    padding: 9px 16px; border-radius: 16px; background: rgba(20, 18, 31, 0.6); border: 2px solid rgba(255, 255, 255, 0.6);
+    font-size: 13px; font-weight: 700;
+  }
+  kbd {
+    display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 5px; margin: 1px;
+    font: 700 12px/1 system-ui, sans-serif; color: var(--ink); background: #fff; border-radius: 6px; box-shadow: 0 2px 0 #9aa;
+  }
+  .touch-hint { display: none; font-weight: 700; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6); max-width: 560px; }
+  body.touch .keys { display: none; }
+  body.touch .touch-hint { display: block; }
+  .credit { position: fixed; right: max(14px, env(safe-area-inset-right)); bottom: max(10px, env(safe-area-inset-bottom)); font-size: 13px; font-weight: 700; opacity: 0.85; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6); pointer-events: none; }
+  .credit b { color: #ffe2a0; }
+  .big {
+    font-family: var(--display); font-size: clamp(34px, 7.5vw, 84px); color: var(--cyan); transform: rotate(-3deg); line-height: 1;
+    -webkit-text-stroke: 4px var(--ink); paint-order: stroke fill; text-shadow: 0 7px 0 var(--yellow), 0 12px 0 var(--ink);
+  }
+  .big.win { color: var(--yellow); text-shadow: 0 7px 0 var(--pink), 0 12px 0 var(--ink); }
+  /* after a game the panel sits at the top, so the celebration on the island stays in view */
+  #results { background: linear-gradient(180deg, rgba(14, 10, 36, 0.82), rgba(14, 10, 36, 0.6) 50%, rgba(20, 16, 60, 0) 72%); justify-content: safe flex-start; padding-top: max(14px, env(safe-area-inset-top)); }
+  .stats { border-collapse: collapse; border-radius: 16px; overflow: hidden; background: rgba(20, 18, 31, 0.74); font-size: 15px; font-weight: 700; }
+  .stats td { padding: 3px 12px; white-space: nowrap; }
+  .stats td.who { text-align: left; display: flex; align-items: center; gap: 7px; font-family: var(--display); font-weight: 400; font-size: 13px; }
+  .stats td.who img { width: 28px; height: 28px; border-radius: 8px; background: radial-gradient(circle at 50% 35%, #ffe2a0, #ff9f1c); }
+  .stats td.pts { color: var(--green); font-variant-numeric: tabular-nums; text-align: right; }
+  .stats tr.me td { background: rgba(255, 212, 0, 0.3); }
+  .best { font-family: var(--display); font-size: 16px; color: #fff; text-shadow: 0 2px 0 var(--ink); }
+  .best.new { color: var(--green); animation: pulse 0.8s ease-in-out infinite; }
+  .btnrow { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+  .hint { font-size: 13px; font-weight: 700; opacity: 0.88; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6); }
+  #menuMute {
+    position: fixed; right: max(14px, env(safe-area-inset-right)); top: max(14px, env(safe-area-inset-top));
+    width: 54px; height: 54px; border-radius: 16px; font-size: 26px; line-height: 1; display: grid; place-items: center;
+    background: rgba(20, 18, 31, 0.6); border: 3px solid #fff; box-shadow: 0 4px 0 var(--ink); transition: opacity 0.3s; color: #fff;
+  }
+  #loading { position: fixed; inset: 0; display: grid; place-items: center; background: #5ec2ff; font-family: var(--display); font-size: 28px; letter-spacing: 2px; padding: 24px; text-align: center; -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; }
+  .rotate { display: none; position: fixed; left: 50%; top: 64px; translate: -50% 0; padding: 7px 14px; border-radius: 999px; background: rgba(20, 18, 31, 0.75); font-weight: 800; font-size: 13px; pointer-events: none; white-space: nowrap; }
+  @media (orientation: portrait) and (max-width: 700px) {
+    body.title .rotate { display: block; top: auto; bottom: 14px; }
+    .row > span.h { display: none; }
+    .opt small { display: none; }
+  }
+  /* short screens (phones sideways), last so it wins: everything tightens up to fit without scrolling */
+  @media (max-height: 460px) {
+    .credit { display: none; }
+    .screen { gap: 6px; padding-top: 6px; padding-bottom: 6px; }
+    .logo .l1 { font-size: 34px; }
+    .logo .l2 { font-size: 13px; margin-top: 2px; }
+    .tag { display: none; }
+    .opts { gap: 4px; flex-direction: row; flex-wrap: wrap; justify-content: center; }
+    .row > span.h { display: none; }
+    .opt { min-height: 42px; padding: 3px 10px 3px 6px; }
+    .opt small { display: none; }
+    .opt img { width: 30px; height: 30px; }
+    .opt .e { font-size: 20px; }
+    .btn { padding: 7px 18px; box-shadow: 0 5px 0 var(--ink); }
+    .touch-hint { font-size: 12px; max-width: 600px; }
+    .big { font-size: 28px; }
+    .stats { font-size: 12px; }
+    .stats td { padding: 1px 7px; }
+    .stats td.who img { width: 20px; height: 20px; }
+    #results .hint, #pause .hint { display: none; }
+    .btnrow .btn { padding: 6px 14px; box-shadow: 0 4px 0 var(--ink); }
+    .bigmsg { font-size: 40px; top: 30%; }
+  }
+</style>
+</head>
+<body class="title">
+<canvas id="game"></canvas>
+<div id="hud" class="hidden">
+  <div class="hudbar">
+    <div class="left">
+      <div class="box" id="hudP0"><span class="lbl" data-name="0">TEDDY</span><b class="sc">0</b><span class="lives"></span></div>
+    </div>
+    <div class="box mid"><span class="lbl">HI-SCORE</span><b id="hudHi">0</b><span class="wave" id="hudWave"></span></div>
+    <div class="right">
+      <div class="box" id="hudP1"><span class="lbl" data-name="1">TOMMY</span><b class="sc">0</b><span class="lives"></span></div>
+      <div class="ibtns">
+        <button id="pauseBtn" class="ibtn" title="Pause (P)" aria-label="Pause">❚❚</button>
+        <button class="ibtn muteBtn" title="Sound (M)" aria-label="Sound on or off">🔊</button>
+      </div>
+    </div>
+  </div>
+  <button class="bud" id="budBtn"><img alt=""><span class="lbl2" id="budLbl"></span><span class="k">T</span></button>
+</div>
+<div id="pops"></div>
+<div id="toast" class="toast"></div>
+<div id="bigmsg" class="bigmsg"></div>
+<div id="touch" class="hidden">
+  <div class="tgrp" id="tL">
+    <button class="tk" data-p="0" data-k="l" aria-label="Drift left">◀</button>
+    <button class="tk" data-p="0" data-k="r" aria-label="Drift right">▶</button>
+    <button class="tk flap p0 p2only" data-p="0" data-k="flap" aria-label="Flap"><span>⬆</span><small>FLAP</small></button>
+  </div>
+  <div class="tgrp" id="tR">
+    <button class="tk call" data-p="0" data-k="call" aria-label="Call your brother"><img alt=""><small>CALL</small></button>
+    <button class="tk flap" data-p="R" data-k="flap" aria-label="Flap"><span>⬆</span><small>FLAP</small></button>
+    <button class="tk p2only" data-p="1" data-k="l" aria-label="Drift left">◀</button>
+    <button class="tk p2only" data-p="1" data-k="r" aria-label="Drift right">▶</button>
+  </div>
+</div>
+<div id="title" class="screen hidden">
+  <div class="logo" data-no-lang><span class="l1"><span class="chute">🪂</span><span id="logoText"></span></span><span class="l2" id="logoSub"></span></div>
+  <p class="tag" id="tagline"></p>
+  <div class="opts">
+    <div class="row" role="radiogroup" aria-label="Players">
+      <span class="h">PLAYERS</span>
+      <button class="opt" data-players="1" role="radio"><span class="e">👤</span><span><b>1 PLAYER</b><small>Foxy, Froggy &amp; the silly birds</small></span></button>
+      <button class="opt" data-players="2" role="radio"><span class="e">👫</span><span><b>2 PLAYERS</b><small>Teddy &amp; Tommy fly together</small></span></button>
+    </div>
+    <div class="row" id="whoRow" role="radiogroup" aria-label="Flyer">
+      <span class="h">FLYER</span>
+      <button class="opt" data-who="teddy" role="radio"><img alt=""><span><b>TEDDY</b><small>boxing champ</small></span></button>
+      <button class="opt" data-who="tommy" role="radio"><img alt=""><span><b>TOMMY</b><small>peace sign pro</small></span></button>
+    </div>
+    <div class="row off" id="modeRow" role="radiogroup" aria-label="Mode">
+      <span class="h">MODE</span>
+      <button class="opt" data-mode="coop" role="radio"><span class="e">🤝</span><span><b>CO-OP</b><small>a team: you can't pop each other</small></span></button>
+      <button class="opt" data-mode="versus" role="radio"><span class="e">🥊</span><span><b>VERSUS</b><small>pop your brother's balloons too</small></span></button>
+    </div>
+    <div class="row" role="radiogroup" aria-label="Difficulty">
+      <span class="h">LEVEL</span>
+      <button class="opt" data-level="easy" role="radio"><span class="e">🐣</span><span><b>EASY</b><small>slow rivals · splashy lake · 5 lives</small></span></button>
+      <button class="opt" data-level="normal" role="radio"><span class="e">🔥</span><span><b>NORMAL</b><small>quick rivals · sparks · 3 lives</small></span></button>
+    </div>
+  </div>
+  <button class="btn pulse" id="startBtn">▶ FLY!</button>
+  <p class="hiline" id="titleHi"></p>
+  <div class="keys" id="titleKeys">
+    <span>flap and rise</span><span><kbd>Space</kbd> or <kbd>↑</kbd> <kbd>W</kbd> (hold to keep flapping)</span>
+    <span>drift</span><span><kbd>←</kbd><kbd>→</kbd> or <kbd>A</kbd><kbd>D</kbd></span>
+    <span>call your brother</span><span><kbd>T</kbd></span>
+    <span>pause · sound</span><span><kbd>P</kbd> · <kbd>M</kbd></span>
+  </div>
+  <p class="touch-hint" id="touchHint">◀ ▶ drift, the big ⬆ flaps (hold it to keep flapping). Tap your brother's face to call him!</p>
+  <div class="credit">built with <b>Claude Code</b></div>
+</div>
+<div id="pause" class="screen hidden">
+  <div class="big">PAUSED</div>
+  <div class="btnrow">
+    <button id="resumeBtn" class="btn">▶ RESUME</button>
+    <button id="quitBtn" class="btn small ghost">MENU</button>
+  </div>
+  <p class="hint">P · Esc to go on · Q for the menu · M sound</p>
+</div>
+<div id="results" class="screen hidden">
+  <div id="resTitle" class="big win"></div>
+  <p id="resSub" class="tag"></p>
+  <table id="resTable" class="stats"></table>
+  <p id="resBest" class="best"></p>
+  <div class="btnrow">
+    <button id="againBtn" class="btn">↻ PLAY AGAIN</button>
+    <button id="menuBtn" class="btn ghost small">MENU</button>
+  </div>
+  <p class="hint">Enter: play again · Esc: menu</p>
+</div>
+<button id="menuMute" class="muteBtn" title="Sound on / off (M)" aria-label="Sound on or off">🔊</button>
+<div id="loading">LOADING…</div>
+<div class="rotate">↻ Turn sideways for a bigger sky!</div>
+<script src="kit/three.min.js"></script>
+<script src="kit/gfx.js"></script>
+<script src="kit/people.js"></script>
+<script src="kit/roster.js"></script>
+<script src="kit/portraits.js"></script>
+<script src="kit/sound.js"></script>
+<script src="kit/lang.js"></script>
+<script src="kit/help.js"></script>
+<script src="js/title.js"></script>
+<script src="js/friends.js"></script>
+<script src="js/levels.js"></script>
+<script src="js/sim.js"></script>
+<script src="js/bot.js"></script>
+<script src="js/check.js"></script>
+<script src="js/art.js"></script>
+<script src="js/sfx.js"></script>
+<script src="js/game.js"></script>
+<script src="js/playcheck.js"></script>
+<script src="js/keys.js"></script>
+<script src="js/zh.js"></script>
+</body>
+</html>
