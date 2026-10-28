@@ -176,9 +176,9 @@
 
   // ---------- the lake: a wavy, chunky plane ----------
   A.lake = function (scene) {
-    const geo = new T.PlaneGeometry(80, 22, 56, 14);
+    const geo = new T.PlaneGeometry(90, 52, 56, 24); // from the far shore to well past the camera, so tall screens see water below
     geo.rotateX(-PI / 2);
-    geo.translate(0, 0, -5);
+    geo.translate(0, 0, 9);
     const base = geo.attributes.position.array.slice();
     const m = new T.Mesh(geo, new T.MeshStandardMaterial({ color: '#2fb3ec', roughness: 0.25, metalness: 0.05, flatShading: true }));
     scene.add(m);

@@ -1,0 +1,62 @@
+[
+ {
+  "label": "muted",
+  "js": "localStorage.setItem('claudeGames.muted', '1'); localStorage.setItem('claudeGames.lang', 'en'); location.reload(); 'reload'",
+  "wait": 5000
+ },
+ {
+  "label": "load the report",
+  "js": "(() => { const s = document.createElement('script'); s.src = 'tools/layout.js'; document.head.appendChild(s); return 'ok'; })()",
+  "wait": 400
+ },
+ {
+  "label": "390x844",
+  "size": [
+   390,
+   844
+  ],
+  "js": "(async () => { const z = (ms) => new Promise((r) => setTimeout(r, ms)); game.hold(true); document.body.classList.add('touch'); const out = [];game.showTitle(); game.step(0.1); await z(200); out.push(layoutReport('title'));game.start({ players: 1, who: 'teddy', level: 'easy', go: true }); game.step(0.1); await z(200); out.push(layoutReport('play 1P'));game.start({ players: 2, mode: 'coop', level: 'easy', go: true }); game.step(0.1); await z(200); out.push(layoutReport('play 2P'));game.showResults && (game.world().pl.forEach((p, i) => { p.lives = 0; game.world().riders[i].state = 'out'; }), game.step(4)); await z(200); out.push(layoutReport('results 2P'));game.showTitle(); return JSON.stringify(out.map((o) => [o.label, o.field.join(','), 'tap ' + o.minTap, o.problems.join('; ') || 'ok'])); })()",
+  "wait": 300,
+  "shot": "layout-390x844"
+ },
+ {
+  "label": "740x360",
+  "size": [
+   740,
+   360
+  ],
+  "js": "(async () => { const z = (ms) => new Promise((r) => setTimeout(r, ms)); game.hold(true); document.body.classList.add('touch'); const out = [];game.showTitle(); game.step(0.1); await z(200); out.push(layoutReport('title'));game.start({ players: 1, who: 'teddy', level: 'easy', go: true }); game.step(0.1); await z(200); out.push(layoutReport('play 1P'));game.start({ players: 2, mode: 'coop', level: 'easy', go: true }); game.step(0.1); await z(200); out.push(layoutReport('play 2P'));game.showResults && (game.world().pl.forEach((p, i) => { p.lives = 0; game.world().riders[i].state = 'out'; }), game.step(4)); await z(200); out.push(layoutReport('results 2P'));game.showTitle(); return JSON.stringify(out.map((o) => [o.label, o.field.join(','), 'tap ' + o.minTap, o.problems.join('; ') || 'ok'])); })()",
+  "wait": 300,
+  "shot": "layout-740x360"
+ },
+ {
+  "label": "1024x768",
+  "size": [
+   1024,
+   768
+  ],
+  "js": "(async () => { const z = (ms) => new Promise((r) => setTimeout(r, ms)); game.hold(true); document.body.classList.add('touch'); const out = [];game.showTitle(); game.step(0.1); await z(200); out.push(layoutReport('title'));game.start({ players: 1, who: 'teddy', level: 'easy', go: true }); game.step(0.1); await z(200); out.push(layoutReport('play 1P'));game.start({ players: 2, mode: 'coop', level: 'easy', go: true }); game.step(0.1); await z(200); out.push(layoutReport('play 2P'));game.showResults && (game.world().pl.forEach((p, i) => { p.lives = 0; game.world().riders[i].state = 'out'; }), game.step(4)); await z(200); out.push(layoutReport('results 2P'));game.showTitle(); return JSON.stringify(out.map((o) => [o.label, o.field.join(','), 'tap ' + o.minTap, o.problems.join('; ') || 'ok'])); })()",
+  "wait": 300,
+  "shot": "layout-1024x768"
+ },
+ {
+  "label": "820x1180",
+  "size": [
+   820,
+   1180
+  ],
+  "js": "(async () => { const z = (ms) => new Promise((r) => setTimeout(r, ms)); game.hold(true); document.body.classList.add('touch'); const out = [];game.showTitle(); game.step(0.1); await z(200); out.push(layoutReport('title'));game.start({ players: 1, who: 'teddy', level: 'easy', go: true }); game.step(0.1); await z(200); out.push(layoutReport('play 1P'));game.start({ players: 2, mode: 'coop', level: 'easy', go: true }); game.step(0.1); await z(200); out.push(layoutReport('play 2P'));game.showResults && (game.world().pl.forEach((p, i) => { p.lives = 0; game.world().riders[i].state = 'out'; }), game.step(4)); await z(200); out.push(layoutReport('results 2P'));game.showTitle(); return JSON.stringify(out.map((o) => [o.label, o.field.join(','), 'tap ' + o.minTap, o.problems.join('; ') || 'ok'])); })()",
+  "wait": 300,
+  "shot": "layout-820x1180"
+ },
+ {
+  "label": "1200x750",
+  "size": [
+   1200,
+   750
+  ],
+  "js": "(async () => { const z = (ms) => new Promise((r) => setTimeout(r, ms)); game.hold(true); document.body.classList.add('touch'); const out = [];game.showTitle(); game.step(0.1); await z(200); out.push(layoutReport('title'));game.start({ players: 1, who: 'teddy', level: 'easy', go: true }); game.step(0.1); await z(200); out.push(layoutReport('play 1P'));game.start({ players: 2, mode: 'coop', level: 'easy', go: true }); game.step(0.1); await z(200); out.push(layoutReport('play 2P'));game.showResults && (game.world().pl.forEach((p, i) => { p.lives = 0; game.world().riders[i].state = 'out'; }), game.step(4)); await z(200); out.push(layoutReport('results 2P'));game.showTitle(); return JSON.stringify(out.map((o) => [o.label, o.field.join(','), 'tap ' + o.minTap, o.problems.join('; ') || 'ok'])); })()",
+  "wait": 300,
+  "shot": "layout-1200x750"
+ }
+]

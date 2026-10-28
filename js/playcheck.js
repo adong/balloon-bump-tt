@@ -264,6 +264,7 @@
       canFly('during WAVE CLEAR');
       step(3.2);
       ok(W().wave === 2 && W().riders.some((r) => r.kind === 'rival'), `next wave: ${W().wave} ${W().phase}`);
+      W().riders.forEach((r) => { if (r.kind === 'rival') r.pumpT = 99; }); // still pumping for the whole test
       putOpen(0, { inv: 99 });
       canFly('while the rivals pump up');
       // the bonus stage
